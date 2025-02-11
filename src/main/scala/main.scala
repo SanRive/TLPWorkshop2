@@ -32,18 +32,20 @@ object FitnessClassManager {
 
   private def segmentAndPrintClasses(classes: List[FitnessClass]): List[FitnessClass] = {
     val today = LocalDate.now()
-    val validClasses = classes.filter(_.date.isAfter(today)) // Remove past classes
-    validClasses
-      .groupBy(_.classType)
-      .foreach {
-        case (classType, classesOfType) =>
-          println(s"Classes of type: $classType")
-          classesOfType
-            .sortBy(_.date)
-            .foreach(c => println(s"$c"))
+
+    classes
+      .filter(_.date.isAfter(today)) // Remove past classes
+      .groupBy(_.classType) // Group by class type
+      .map { case (classType, classesOfType) =>
+        // Print the header for this class type
+        println(s"Classes of type: $classType")
+        // Print each class, sorted by date
+        classesOfType.sortBy(_.date).foreach(c => println(s"$c"))
       }
-    validClasses
+
+    classes.filter(_.date.isAfter(today)) // Return the valid classes
   }
+
 
   private def findClassesAtOpening(
                             classes: List[FitnessClass],
@@ -80,19 +82,12 @@ object FitnessClassManager {
   }
 
   private def applyMondayDiscount(classes: List[FitnessClass]): List[FitnessClass] = {
-    val today = LocalDate.now()
-    val dayOfWeek = today.getDayOfWeek
-    val isWeekend =
-      dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY
-    val discount = calculateDiscount(dayOfWeek, isWeekend)
+    val discountForToday = calculateDiscount(LocalDate.now().getDayOfWeek, isWeekend = false)
 
-    classes.map(c =>
-      if (c.date.getDayOfWeek == DayOfWeek.MONDAY) {
-        c.copy(price = c.price * (1 - discount))
-      } else {
-        c
-      }
-    )
+    classes.map { c =>
+      if (c.date.getDayOfWeek == DayOfWeek.MONDAY) c.copy(price = c.price * (1 - discountForToday))
+      else c
+    }
   }
 
   def main(args: Array[String]): Unit = {
