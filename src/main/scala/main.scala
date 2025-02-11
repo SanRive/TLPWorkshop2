@@ -36,7 +36,7 @@ object FitnessClassManager {
     classes
       .filter(_.date.isAfter(today)) // Remove past classes
       .groupBy(_.classType) // Group by class type
-      .map { case (classType, classesOfType) =>
+      .foreach { case (classType, classesOfType) =>
         // Print the header for this class type
         println(s"Classes of type: $classType")
         // Print each class, sorted by date
