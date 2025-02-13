@@ -19,7 +19,7 @@ object Gimnasio {
     ClaseAcondicionamiento("Ana", LocalDate.of(2025, 2, 14), LocalTime.of(9, 0), "Rumba divertida", "Rumba", 25.0),
     ClaseAcondicionamiento("Luis", LocalDate.of(2025, 2, 17), LocalTime.of(8, 0), "Stretching avanzado", "Stretching", 20.0),
     ClaseAcondicionamiento("Marta", LocalDate.of(2025, 2, 10), LocalTime.of(10, 0), "Funcional extremo", "Funcional", 35.0),
-    ClaseAcondicionamiento("Pedro", LocalDate.of(2025, 2, 13), LocalTime.of(8, 0), "Spinning suave", "Spinning", 28.0)
+    ClaseAcondicionamiento("Pedro", LocalDate.of(2025, 2, 16), LocalTime.of(8, 0), "Spinning suave", "Spinning", 28.0)
   )
 
   // Filtrado de clases por tipología y ordenadas por fecha ascendente
@@ -48,11 +48,14 @@ object Gimnasio {
   }
 
   // Calcular descuento basado en el día y la categoría
-  def calcularDescuento(clase: ClaseAcondicionamiento, esFinDeSemana: Boolean): Double = {
-    val descuentoBase = if (clase.fecha.getDayOfWeek == DayOfWeek.MONDAY) 0.3 else 0.0
-    val descuentoAdicional = if (esFinDeSemana) 0.1 else 0.0
+  def calcularDescuento(clase: ClaseAcondicionamiento): Double = {
+    val day = clase.fecha.getDayOfWeek
+    val descuentoBase = if (day == DayOfWeek.MONDAY) 0.3 else 0.0
+    // println(clase.fecha.getDayOfWeek)
+    val descuentoAdicional = if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) 0.1 else 0.0
     clase.precio * (1 - descuentoBase - descuentoAdicional)
   }
+
 
   // Ejecución de ejemplo
   def main(args: Array[String]): Unit = {
@@ -69,6 +72,6 @@ object Gimnasio {
     ordenarPorFecha(clases).foreach(println)
 
     println("\nPrecios con descuento si es fin de semana:")
-    clases.map(clase => (clase.descripcion, calcularDescuento(clase, esFinDeSemana = true))).foreach(println)
+    clases.map(clase => (clase.descripcion, calcularDescuento(clase))).foreach(println)
   }
 }
