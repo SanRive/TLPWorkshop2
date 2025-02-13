@@ -15,9 +15,9 @@ object Gimnasio {
   // Lista de clases ofrecidas por el gimnasio
   // Mostrar los precios en dólares para evitar cifras con muchos ceros
   private val clases = List(
-    ClaseAcondicionamiento("Carlos", LocalDate.of(2025, 2, 12), LocalTime.of(8, 0), "Spinning intenso", "Spinning", 30.0),
+    ClaseAcondicionamiento("Carlos", LocalDate.of(2025, 2, 22), LocalTime.of(8, 0), "Spinning intenso", "Spinning", 30.0),
     ClaseAcondicionamiento("Ana", LocalDate.of(2025, 2, 14), LocalTime.of(9, 0), "Rumba divertida", "Rumba", 25.0),
-    ClaseAcondicionamiento("Luis", LocalDate.of(2025, 2, 11), LocalTime.of(8, 0), "Stretching avanzado", "Stretching", 20.0),
+    ClaseAcondicionamiento("Luis", LocalDate.of(2025, 2, 17), LocalTime.of(8, 0), "Stretching avanzado", "Stretching", 20.0),
     ClaseAcondicionamiento("Marta", LocalDate.of(2025, 2, 10), LocalTime.of(10, 0), "Funcional extremo", "Funcional", 35.0),
     ClaseAcondicionamiento("Pedro", LocalDate.of(2025, 2, 13), LocalTime.of(8, 0), "Spinning suave", "Spinning", 28.0)
   )
