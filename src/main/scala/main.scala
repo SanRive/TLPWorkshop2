@@ -1,122 +1,74 @@
-import java.time.{DayOfWeek, LocalDate}
-import java.time.format.DateTimeFormatter
-import scala.math
-import scala.util.Random
+import java.time.{LocalDate, LocalTime, DayOfWeek}
 
-case class FitnessClass(
-                         professor: String,
-                         date: LocalDate,
-                         description: String,
-                         classType: String,
-                         price: Double
-                       )
+// Definición de la clase ClaseAcondicionamiento
+case class ClaseAcondicionamiento(
+                                   profesor: String,
+                                   fecha: LocalDate,
+                                   hora: LocalTime,
+                                   descripcion: String,
+                                   tipo: String,
+                                   precio: Double
+                                 )
 
-object FitnessClassManager {
+object Gimnasio {
 
-  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  // Lista de clases ofrecidas por el gimnasio
+  // Mostrar los precios en dólares para evitar cifras con muchos ceros
+  private val clases = List(
+    ClaseAcondicionamiento("Carlos", LocalDate.of(2025, 2, 12), LocalTime.of(8, 0), "Spinning intenso", "Spinning", 30.0),
+    ClaseAcondicionamiento("Ana", LocalDate.of(2025, 2, 14), LocalTime.of(9, 0), "Rumba divertida", "Rumba", 25.0),
+    ClaseAcondicionamiento("Luis", LocalDate.of(2025, 2, 11), LocalTime.of(8, 0), "Stretching avanzado", "Stretching", 20.0),
+    ClaseAcondicionamiento("Marta", LocalDate.of(2025, 2, 10), LocalTime.of(10, 0), "Funcional extremo", "Funcional", 35.0),
+    ClaseAcondicionamiento("Pedro", LocalDate.of(2025, 2, 13), LocalTime.of(8, 0), "Spinning suave", "Spinning", 28.0)
+  )
 
-  private def generateClasses(): List[FitnessClass] = {
-    val classTypes = List("Spinning", "Rumba", "Stretching", "Functional")
-    val professors = List("Alice", "Bob", "Charlie")
-
-    List.fill(5)(
-      FitnessClass(
-        professor = professors(Random.nextInt(professors.length)),
-        date = LocalDate.now().plusDays(Random.nextInt(30) - 15), // Dates around today
-        description = "Generic fitness class",
-        classType = classTypes(Random.nextInt(classTypes.length)),
-        price = 20.0 + Random.nextDouble() * 30.0 // Prices between 20 and 50
-      )
-    )
+  // Filtrado de clases por tipología y ordenadas por fecha ascendente
+  def clasesPorTipo(tipo: String): List[ClaseAcondicionamiento] = {
+    clases.filter(_.tipo == tipo)
+      .filter(_.fecha.isAfter(LocalDate.now()))
+      .sortBy(_.fecha)
   }
 
-  private def segmentAndPrintClasses(classes: List[FitnessClass]): List[FitnessClass] = {
-    val today = LocalDate.now()
-
-    classes
-      .filter(_.date.isAfter(today)) // Remove past classes
-      .groupBy(_.classType) // Group by class type
-      .foreach { case (classType, classesOfType) =>
-        // Print the header for this class type
-        println(s"Classes of type: $classType")
-        // Print each class, sorted by date
-        classesOfType.sortBy(_.date).foreach(c => println(s"$c"))
-      }
-
-    classes.filter(_.date.isAfter(today)) // Return the valid classes
+  // Buscar clases al abrir el gimnasio y validar el presupuesto
+  def clasesAlAbrir(horaApertura: Int, presupuesto: Double): List[ClaseAcondicionamiento] = {
+    clases.filter(clase => clase.hora.getHour == horaApertura && clase.precio <= presupuesto)
   }
 
-
-  private def findClassesAtOpening(
-                            classes: List[FitnessClass],
-                            openingTime: Int,
-                            userBudget: Double
-                          ): List[FitnessClass] = {
-    val availableClasses = classes.filter(_.price <= userBudget)
-    println(s"Classes available that fit the budget of $$$userBudget:")
-    availableClasses.foreach(println)
-    availableClasses
+  // Ordenar la lista por precio de manera recursiva
+  def ordenarPorPrecio(lista: List[ClaseAcondicionamiento]): List[ClaseAcondicionamiento] = lista match {
+    case Nil => Nil
+    case head :: tail =>
+      val (mayores, menores) = tail.partition(_.precio >= head.precio)
+      ordenarPorPrecio(mayores) ::: head :: ordenarPorPrecio(menores)
   }
 
-  private def sortClassesByPriceDescending(classes: List[FitnessClass]): List[FitnessClass] = {
-    if (classes.isEmpty) {
-      classes
-    } else {
-      val pivot = classes.head
-      val smaller = classes.tail.filter(_.price > pivot.price)
-      val larger = classes.tail.filter(_.price <= pivot.price)
-      sortClassesByPriceDescending(smaller) ++ List(pivot) ++
-        sortClassesByPriceDescending(larger)
-    }
+  // Ordenar por fecha utilizando programación funcional
+  def ordenarPorFecha(lista: List[ClaseAcondicionamiento]): List[ClaseAcondicionamiento] = {
+    lista.sortBy(_.fecha)
   }
 
-  private def sortByDateAscending(classes: List[FitnessClass]): List[FitnessClass] = {
-    classes.sortBy(_.date)
+  // Calcular descuento basado en el día y la categoría
+  def calcularDescuento(clase: ClaseAcondicionamiento, esFinDeSemana: Boolean): Double = {
+    val descuentoBase = if (clase.fecha.getDayOfWeek == DayOfWeek.MONDAY) 0.3 else 0.0
+    val descuentoAdicional = if (esFinDeSemana) 0.1 else 0.0
+    clase.precio * (1 - descuentoBase - descuentoAdicional)
   }
 
-  private def calculateDiscount(dayOfWeek: DayOfWeek, isWeekend: Boolean): Double = {
-    val baseDiscount =
-      if (dayOfWeek == DayOfWeek.MONDAY) 0.30 else 0.0 // 30% on Mondays
-    val weekendBonus = if (isWeekend) 0.10 else 0.0 // Additional 10% on weekends
-    baseDiscount + weekendBonus
-  }
-
-  private def applyMondayDiscount(classes: List[FitnessClass]): List[FitnessClass] = {
-    val discountForToday = calculateDiscount(LocalDate.now().getDayOfWeek, isWeekend = false)
-
-    classes.map { c =>
-      if (c.date.getDayOfWeek == DayOfWeek.MONDAY) c.copy(price = c.price * (1 - discountForToday))
-      else c
-    }
-  }
-
+  // Ejecución de ejemplo
   def main(args: Array[String]): Unit = {
-    val allClasses = generateClasses()
+    println("Clases de Spinning:")
+    clasesPorTipo("Spinning").foreach(println)
 
-    println(LocalDate.now())
-    println("All Classes:")
-    allClasses.foreach(println)
+    println("\nClases al abrir el gimnasio (8 AM) con presupuesto de 30:")
+    clasesAlAbrir(8, 30).foreach(println)
 
-    println("\nSegmented and Sorted Classes:")
-    val validClasses = segmentAndPrintClasses(allClasses)
+    println("\nClases ordenadas por precio:")
+    ordenarPorPrecio(clases).foreach(println)
 
-    val openingTime = 9 // Simulate 9 AM
-    val userBudget = 35.0
-    println(
-      s"\nClasses available at opening time ($openingTime:00) within budget:"
-    )
-    findClassesAtOpening(validClasses, openingTime, userBudget)
+    println("\nClases ordenadas por fecha:")
+    ordenarPorFecha(clases).foreach(println)
 
-    println("\nClasses sorted by price (descending):")
-    val sortedByPrice = sortClassesByPriceDescending(validClasses)
-    sortedByPrice.foreach(println)
-
-    println("\nClasses sorted by date (ascending):")
-    val sortedByDate = sortByDateAscending(validClasses)
-    sortedByDate.foreach(println)
-
-    println("\nClasses with Monday discount applied:")
-    val discountedClasses = applyMondayDiscount(validClasses)
-    discountedClasses.foreach(println)
+    println("\nPrecios con descuento si es fin de semana:")
+    clases.map(clase => (clase.descripcion, calcularDescuento(clase, esFinDeSemana = true))).foreach(println)
   }
 }
